@@ -2,7 +2,7 @@
 
 ### Description:
 
-Python3 implementation for exploiting Log4JMX over Jolokia
+Python3 implementation for leveraging and exploiting [Log4J](https://logging.apache.org/log4j/2.x/) MBeans over [Jolokia](https://jolokia.org/)
 
 ### Usage:
 
