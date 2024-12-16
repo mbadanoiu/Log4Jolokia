@@ -188,7 +188,7 @@ def get_mbeans(target, auth=None, headers=None, verbose=True):
 			type = "org.apache.logging.log4j2:type="+k.split("type=")[1]
 			if not type in types:
 				types.append(type)
-				print(f"[+] Found Log4J Mbean org.apache.logging.log4j2:type={type}")
+				print(f"[+] Found Log4J Mbean {type}")
 	return types
 
 def setConfigLocationUri(target, path, mbean, verbose=True):
