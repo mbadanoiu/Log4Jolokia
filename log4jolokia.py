@@ -30,7 +30,7 @@ parser = argparse.ArgumentParser(
 			formatter_class=RawTextHelpFormatter)
 
 modes = ["exec_jar", "write_file", "read_file", "exec_script"]
-parser.add_argument('mode', nargs='+',help='choose mode: exec_jar | write_file | read_file',choices=modes)
+parser.add_argument('mode', nargs='+',help='choose mode: exec_jar | write_file | read_file | exec_script',choices=modes)
 parser.add_argument('target', nargs='+',help='URL to jolokia (e.g. http://127.0.0.1:8161/console/jolokia)',type=url)
 
 parser.add_argument('-u','--user', nargs='?',help='Jolokia username',default='')
