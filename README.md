@@ -8,11 +8,11 @@ Python3 implementation for leveraging and exploiting [Log4J](https://logging.apa
 
 Generic Help:
 ```
-usage: log4jolokia.py [-h] [-u [USER]] [-p [PASSWD]] [--proxy [PROXY]] [-H [HEADER]] {exec_jar,write_file,read_file} [{exec_jar,write_file,read_file} ...] target [target ...]
+usage: log4jolokia.py [-h] [-u [USER]] [-p [PASSWD]] [--proxy [PROXY]] [-H [HEADER]] {exec_jar,write_file,read_file,exec_script} [{exec_jar,write_file,read_file,exec_script} ...] target [target ...]
 
 positional arguments:
-  {exec_jar,write_file,read_file}
-                        choose mode: exec_jar | write_file | read_file
+  {exec_jar,write_file,read_file,exec_script}
+                        choose mode: exec_jar | write_file | read_file | exec_script
   target                URL to jolokia (e.g. http://127.0.0.1:8161/console/jolokia)
 
 options:
