@@ -85,7 +85,7 @@ elif mode == 'exec_script':
 	### exec script
 	mode_parser.add_argument('-sf','--script_file', nargs='?',help='Path to local file containing the script to be executed on the target (Use only with mode: exec_script)',required=True)
 	mode_parser.add_argument('-l','--language', nargs='?',help='Language of the script to be executed (E.g. javascript, groovy, beanshell, etc.) (Use only with mode: exec_script)',required=True)
-	mode_parser.epilog = "Example command:\n\tpython3 log4jolokia.py exec_script http://127.0.0.1:8161/console/jolokia/ -s rce.js -l javascript -u admin -p admin -H 'Origin: http://localhost'"
+	mode_parser.epilog = "Example command:\n\tpython3 log4jolokia.py exec_script http://127.0.0.1:8161/console/jolokia/ -sf rce.js -l javascript -u admin -p admin -H 'Origin: http://localhost'"
 else:
 	### how did we get here?
 	print("[!] Invalid Mode selected")
