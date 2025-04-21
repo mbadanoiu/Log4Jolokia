@@ -229,7 +229,7 @@ If you agree with the above enter "yes" to continue: yes
 
 #### Execute Scripts:
 
-By using the functionality presented in the "write_file" module, we will write an arbitrary JAR on the target system and then use the "jvmtiAgentLoad([Ljava.lang.String;)" function in order to execute arbitrary Java code.
+By using Log4J's [inbuilt script support feature](https://logging.apache.org/log4j/2.x/manual/scripts.html), we can inject a malicious config containing arbitrary script elements.
 
 **Note:** In order for this exploit to work Log4J need to be configured to allow the respective script type (by default no scripts are allowed).
 
