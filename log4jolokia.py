@@ -312,7 +312,7 @@ def gen_log4j_config(content, path, tmp_dir='/tmp/', permissions="rwxrwx---", ve
 			tmp_file = tmp_dir + "/mal.properties"
 			if verbose:
 				print("[.] Invalid XML characters have been detected in the content")
-				print("[.] Using a 2 step write techique (XML -> Properties -> File)")
+				print("[.] Using a 2 step write technique (XML -> Properties -> File)")
 			break
 
 	if not tmp_file:
@@ -411,7 +411,7 @@ def exec_jar(target, jar, mbean, tmp_dir='/tmp'):
 	x = input(f"""\n[!!!] WARNING: You are about to write and execute the contents of "{jar}" on the target system. Make sure that:
 	- The JAR contains a valid JVM TI agent
 	- Once a JAR is successfully loaded:
-		-- No new JAR can be loaded until the Java applicaiton is restarted (a.k.a. pick your commands wisely because you only have one shot)
+		-- No new JAR can be loaded until the Java application is restarted (a.k.a. pick your commands wisely because you only have one shot)
 		-- The JAR code will execute everytime the jvmtiAgentLoad() function is successfully called (result == "return code: 0")
 
 If you agree with the above enter "yes" to continue: """)
